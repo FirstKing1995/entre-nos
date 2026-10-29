@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR" class="sem-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entre Nós — o jogo de cartas para conhecer seus amigos</title>
+<meta name="description" content="Um baralho de 65 perguntas para jogar online com 2, 4, 6 ou 8 amigos. Cada um tira uma carta e responde no chat da mesa.">
+<meta name="theme-color" content="#472913">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 28'%3E%3Crect width='20' height='28' fill='%23525e1b'/%3E%3Crect x='5' y='9' width='10' height='10' fill='%23efe7d2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="./">Entre Nós</a>
+  <nav aria-label="Principal">
+    <a href="#como">Como se joga</a>
+    <a href="#convite">Tenho um convite</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="titulo">
+    <h1 id="titulo">Entre Nós</h1>
+    <p class="apoio">Um baralho de 65 perguntas para jogar online com 2, 4, 6 ou 8 amigos. Na sua vez, você tira uma carta e responde no chat que a mesa inteira lê.</p>
+
+    <div class="pastas" id="mesa">
+      <a class="pasta" href="#baralho" data-cat="1" style="background:#b8862c;color:#efe7d2;z-index:1"><span class="aba" style="left:2%">Quebra-gelo</span></a>
+      <a class="pasta" href="#baralho" data-cat="2" style="background:#5f6e1f;color:#efe7d2;z-index:2"><span class="aba" style="left:16%">Personalidade</span></a>
+      <a class="pasta" href="#baralho" data-cat="3" style="background:#8a3b2e;color:#efe7d2;z-index:3"><span class="aba" style="left:31%">Histórias</span></a>
+      <a class="pasta" href="#baralho" data-cat="4" style="background:#2f6158;color:#efe7d2;z-index:4"><span class="aba" style="right:31%">Amizade</span></a>
+      <a class="pasta" href="#baralho" data-cat="5" style="background:#283454;color:#efe7d2;z-index:5"><span class="aba" style="right:16%">Profundas</span></a>
+      <a class="pasta" href="#baralho" data-cat="6" style="background:#7a4e22;color:#efe7d2;z-index:6"><span class="aba" style="right:2%">Dilemas</span></a>
+      <a class="pasta" href="#baralho" data-cat="7" style="background:#1f140b;color:#efe7d2;z-index:7"><span class="aba" style="left:8%">Especiais</span></a>
+
+      <div class="pasta frente" style="z-index:8">
+        <span class="aba">Abra uma mesa</span>
+        <div class="mesa-form">
+          <div>
+            <h2>Monte a mesa e chame o grupo</h2>
+            <p class="sub">Você recebe um link para mandar a quem vai jogar. Sem cadastro, sem senha.</p>
+            <form id="form-criar" novalidate>
+              <label class="campo"><span>Seu nome na mesa</span>
+                <input name="nome" autocomplete="nickname" maxlength="20" required placeholder="Como o grupo te chama">
+              </label>
+              <fieldset class="escolha">
+                <legend>Lugares</legend>
+                <label><input type="radio" name="cap" value="2"><span>2</span></label>
+                <label><input type="radio" name="cap" value="4" checked><span>4</span></label>
+                <label><input type="radio" name="cap" value="6"><span>6</span></label>
+                <label><input type="radio" name="cap" value="8"><span>8</span></label>
+              </fieldset>
+              <fieldset class="escolha">
+                <legend>Tom da conversa</legend>
+                <label><input type="radio" name="modo" value="tranquilo"><span>Tranquilo</span></label>
+                <label><input type="radio" name="modo" value="engracado"><span>Engraçado</span></label>
+                <label><input type="radio" name="modo" value="profundo"><span>Profundo</span></label>
+                <label><input type="radio" name="modo" value="completo" checked><span>Baralho completo</span></label>
+              </fieldset>
+              <p class="aviso-erro" id="erro-criar" role="alert"></p>
+              <div><button class="btn" type="submit">Abrir a mesa</button></div>
+            </form>
+          </div>
+          <div class="lado" id="convite">
+            <h2>Recebeu um convite?</h2>
+            <p class="sub">Digite o código de cinco letras que veio no link.</p>
+            <form id="form-entrar" novalidate>
+              <label class="campo"><span>Código da mesa</span>
+                <input name="cod" autocomplete="off" autocapitalize="characters" maxlength="5" required placeholder="Ex.: KX7RM" style="letter-spacing:.12em;text-transform:uppercase">
+              </label>
+              <label class="campo"><span>Seu nome na mesa</span>
+                <input name="nome" autocomplete="nickname" maxlength="20" required>
+              </label>
+              <p class="aviso-erro" id="erro-entrar" role="alert"></p>
+              <div><button class="btn btn-fantasma" type="submit" style="background:#24160b;color:#efe7d2">Sentar à mesa</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao como" id="como" aria-labelledby="t-como">
+    <div class="grade">
+      <div class="texto">
+        <h2 class="titulo-secao revela" id="t-como">Como se joga</h2>
+        <p class="revela" style="--d:80ms">Uma pessoa por vez tira uma carta e responde. O resto da mesa lê, comenta e faz perguntas no mesmo chat. Ninguém precisa responder o que não quer.</p>
+      </div>
+      <div class="recibo revela" style="--d:160ms">
+        <div class="cab">Entre Nós</div>
+        <p>Mesa online · de 2 a 8 lugares</p>
+        <h3>Antes da partida</h3>
+        <ol>
+          <li>Abra uma mesa<span class="pontos"></span><b>1 minuto</b></li>
+          <li>Mande o link ao grupo<span class="pontos"></span><b>2, 4, 6 ou 8</b></li>
+          <li>Comece quando todos chegarem<span class="pontos"></span><b>quem abriu</b></li>
+        </ol>
+        <h3>Na sua vez</h3>
+        <ol>
+          <li>Escolha uma carta do leque<span class="pontos"></span><b>às cegas</b></li>
+          <li>Responda no chat<span class="pontos"></span><b>todos leem</b></li>
+          <li>Troque a carta<span class="pontos"></span><b>até 2 vezes</b></li>
+          <li>Passe a vez<span class="pontos"></span><b>sem explicar</b></li>
+        </ol>
+        <h3>Na vez dos outros</h3>
+        <ol>
+          <li>Pergunte mais<span class="pontos"></span><b>se a pessoa topar</b></li>
+          <li>Cartas especiais<span class="pontos"></span><b>todos respondem</b></li>
+        </ol>
+        <div class="total"><span>Uma noite de histórias</span><span>65 cartas</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao vitrine" id="baralho" aria-labelledby="t-baralho">
+    <div class="metades">
+      <div class="placa revela">
+        <div class="quadro" id="placa"></div>
+      </div>
+      <div class="indice">
+        <div>
+          <h2 class="titulo-secao revela" id="t-baralho">Sete maços, um baralho</h2>
+          <p class="revela" style="--d:80ms">Do quebra-gelo às perguntas que pedem coragem. Escolha um maço e tire uma carta para sentir o tom antes de chamar o grupo.</p>
+        </div>
+        <ul id="lista-macos" class="revela" style="--d:140ms"></ul>
+        <div class="celulas revela" style="--d:200ms">
+          <button class="btn btn-claro" type="button" id="outra">Tirar outra carta</button>
+          <a class="btn btn-ocre" href="#mesa">Abrir uma mesa</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao faq" aria-labelledby="t-faq">
+    <div class="grade">
+      <h2 class="titulo-secao revela" id="t-faq">Perguntas que sempre aparecem</h2>
+      <div class="colunas revela" style="--d:100ms">
+        <p><b>Precisa instalar alguma coisa?</b> Não. A mesa abre no navegador do celular ou do computador. Quem recebe o link digita um nome e já está sentado.</p>
+        <p><b>Quantas pessoas cabem?</b> Você escolhe 2, 4, 6 ou 8 lugares ao abrir a mesa. Quem chegar com a partida começada ainda senta, enquanto houver lugar.</p>
+        <p><b>Como os outros entram?</b> Mande o link da mesa ou o código de cinco letras. Os dois aparecem assim que a mesa abre, com um botão para copiar.</p>
+        <p><b>E se eu não quiser responder?</b> Passe a vez ou troque a carta, até duas vezes, sem dar explicação. É a regra de cuidado do jogo.</p>
+        <p><b>O que muda nas cartas especiais?</b> Elas chamam o grupo inteiro: todos escrevem no chat, comparam as respostas e conversam sobre as diferenças.</p>
+        <p><b>O que é o tom da mesa?</b> Tranquilo deixa de fora as perguntas mais pesadas, Engraçado fica no leve e nos dilemas, Profundo vai direto às conversas sérias. O baralho completo usa as 65 cartas.</p>
+        <p><b>E se alguém sumir no meio?</b> Se a pessoa da vez ficar 45 segundos sem aparecer, qualquer um pode pular a vez dela. Quem abriu a mesa também pode tirar alguém.</p>
+        <p><b>Precisa de conta?</b> Não há perfil nem senha, só o nome que você escolher. O chat mostra as últimas 80 mensagens para quem chega atrasado, e o registro das mesas fica com quem administra o jogo.</p>
+        <p><b>Quanto custa?</b> Nada. Abra quantas mesas quiser.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape" aria-labelledby="t-rodape">
+  <div class="grade" style="width:100%">
+    <div class="convite">
+      <p id="t-rodape" class="revela">Chame quem você quer conhecer melhor.</p>
+      <a class="btn revela" style="--d:80ms" href="#mesa">Abrir uma mesa</a>
+    </div>
+    <nav class="links" aria-label="Rodapé">
+      <a href="#mesa">Abrir uma mesa</a>
+      <a href="#convite">Entrar com um código</a>
+      <a href="#como">Como se joga</a>
+      <a href="admin.html">Área do organizador</a>
+    </nav>
+  </div>
+  <div class="legal"><span>Entre Nós · baralho de 65 perguntas</span><span>Ninguém precisa responder o que causa desconforto.</span></div>
+  <div class="nome" aria-hidden="true">Entre Nós</div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/cartas.js"></script>
+<script src="js/logica.js"></script>
+<script src="js/api.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/inicio.js"></script>
+</body>
+</html>
