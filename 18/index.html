@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR" class="sem-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entre Nós Sem Filtro +18 — perguntas picantes para jogar online</title>
+<meta name="description" content="A versão +18 do Entre Nós: perguntas diretas sobre desejo, sexo e relações abertas para jogar online com 2 a 8 adultos.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2b0f2e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff5f8a' d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fofo.css">
+</head>
+<body data-baralho="picante">
+<header class="topo">
+  <a class="logo" href="./">Entre Nós <span class="selo">+18</span></a>
+  <nav aria-label="Principal"><a href="#convite">Tenho um convite</a></nav>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="titulo">
+    <div class="simbolos" aria-hidden="true">
+      <span style="--i:0;color:#ff5f8a"><i data-ico="coracao"></i></span>
+      <span style="--i:1;color:#ff8a3d"><i data-ico="fogo"></i></span>
+      <span style="--i:2;color:#ffb84d"><i data-ico="brilho"></i></span>
+      <span style="--i:3;color:#ff86a6"><i data-ico="coracao"></i></span>
+    </div>
+    <h1 id="titulo">Sem Filtro<span class="mais18">+18</span></h1>
+    <p class="apoio">Perguntas diretas sobre desejo, sexo e relações abertas para jogar online com 2 a 8 adultos. Responde quem tem coragem, passa quem não quer.</p>
+    <ul class="chips" aria-label="Os sete maços">
+      <li><a class="pasta" href="#baralho" data-cat="11" style="--c:#ff5f8a"><i data-ico="cereja"></i>Esquenta</a></li>
+      <li><a class="pasta" href="#baralho" data-cat="12" style="--c:#9b6bff"><i data-ico="brilho"></i>Desejos</a></li>
+      <li><a class="pasta" href="#baralho" data-cat="13" style="--c:#ff8a3d"><i data-ico="cadeado"></i>Já fiz</a></li>
+      <li><a class="pasta" href="#baralho" data-cat="14" style="--c:#14a88e"><i data-ico="infinito"></i>Relação aberta</a></li>
+      <li><a class="pasta" href="#baralho" data-cat="15" style="--c:#e2264d"><i data-ico="fogo"></i>Sem filtro</a></li>
+      <li><a class="pasta" href="#baralho" data-cat="16" style="--c:#e09a00"><i data-ico="dado"></i>Dilemas</a></li>
+      <li><a class="pasta" href="#baralho" data-cat="17" style="--c:#7a2a8c"><i data-ico="coracao"></i>Mesa toda</a></li>
+    </ul>
+  </section>
+
+  <div class="paineis" id="mesa">
+    <section class="painel revela" aria-labelledby="t-criar">
+      <h2 id="t-criar"><i data-ico="fogo"></i>Abra uma mesa</h2>
+      <p class="sub">Você recebe um link para mandar no grupo. Sem cadastro, sem senha.</p>
+      <form id="form-criar" novalidate>
+        <label class="campo"><span>Seu nome na mesa</span>
+          <input name="nome" autocomplete="nickname" maxlength="20" required placeholder="Pode ser apelido">
+        </label>
+        <fieldset class="escolha">
+          <legend>Lugares</legend>
+          <label><input type="radio" name="cap" value="2"><span>2</span></label>
+          <label><input type="radio" name="cap" value="4" checked><span>4</span></label>
+          <label><input type="radio" name="cap" value="6"><span>6</span></label>
+          <label><input type="radio" name="cap" value="8"><span>8</span></label>
+        </fieldset>
+        <fieldset class="escolha">
+          <legend>Temperatura</legend>
+          <label><input type="radio" name="modo" value="morno"><span><i data-ico="fogo"></i>Morno</span></label>
+          <label><input type="radio" name="modo" value="quente"><span><i data-ico="fogo"></i><i data-ico="fogo"></i>Quente</span></label>
+          <label><input type="radio" name="modo" value="fogo"><span><i data-ico="fogo"></i><i data-ico="fogo"></i><i data-ico="fogo"></i>Pegando fogo</span></label>
+          <label><input type="radio" name="modo" value="tudo18" checked><span><i data-ico="coracao"></i>Sem filtro total</span></label>
+        </fieldset>
+        <p class="aviso-erro" id="erro-criar" role="alert"></p>
+        <div><button class="btn" type="submit">Abrir a mesa</button></div>
+      </form>
+    </section>
+
+    <section class="painel convite revela" style="--d:100ms" id="convite" aria-labelledby="t-conv">
+      <h2 id="t-conv"><i data-ico="coracao"></i>Recebeu um convite?</h2>
+      <p class="sub">Digite o código de cinco letras que veio no link.</p>
+      <form id="form-entrar" novalidate>
+        <label class="campo"><span>Código da mesa</span>
+          <input name="cod" autocomplete="off" autocapitalize="characters" maxlength="5" required placeholder="Ex.: KX7RM" style="letter-spacing:.12em;text-transform:uppercase">
+        </label>
+        <label class="campo"><span>Seu nome na mesa</span>
+          <input name="nome" autocomplete="nickname" maxlength="20" required>
+        </label>
+        <p class="aviso-erro" id="erro-entrar" role="alert"></p>
+        <div><button class="btn btn-ocre" type="submit">Sentar à mesa</button></div>
+      </form>
+    </section>
+  </div>
+
+  <section class="secao regras" aria-labelledby="t-regras">
+    <h2 class="titulo-secao revela" id="t-regras">As regras da casa</h2>
+    <ul>
+      <li class="revela"><span style="--c:#14a88e"><i data-ico="escudo"></i></span><div><b>Tudo é opcional</b><p>Passe a vez ou troque a carta até duas vezes, sem explicar nada a ninguém.</p></div></li>
+      <li class="revela" style="--d:80ms"><span style="--c:#9b6bff"><i data-ico="cadeado"></i></span><div><b>O que é dito aqui fica aqui</b><p>Nada de print sem combinar antes. A conversa é da mesa.</p></div></li>
+      <li class="revela" style="--d:160ms"><span style="--c:#ff5f8a"><i data-ico="coracao"></i></span><div><b>Pergunta não é convite</b><p>Responder uma carta não obriga ninguém a nada fora do jogo. Consentimento vale sempre.</p></div></li>
+      <li class="revela" style="--d:240ms"><span style="--c:#e2264d"><i data-ico="olhoFechado"></i></span><div><b>Só adultos a fim</b><p>Todo mundo na mesa tem 18 anos ou mais e topou esse tipo de conversa.</p></div></li>
+    </ul>
+  </section>
+
+  <section class="secao vitrine" id="baralho" aria-labelledby="t-baralho">
+    <div class="metades">
+      <div class="placa revela"><div class="quadro" id="placa"></div></div>
+      <div class="indice">
+        <h2 class="titulo-secao revela" id="t-baralho">Sete maços pra esquentar</h2>
+        <p class="revela" style="--d:80ms">Do esquenta às perguntas sem filtro nenhum. Toque num maço e tire uma carta para sentir a temperatura.</p>
+        <ul id="lista-macos" class="revela" style="--d:140ms"></ul>
+        <div class="celulas revela" style="--d:200ms">
+          <button class="btn btn-claro" type="button" id="outra">Tirar outra carta</button>
+          <a class="btn" href="#mesa">Abrir uma mesa</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="secao faq" aria-labelledby="t-faq">
+    <h2 class="titulo-secao revela" id="t-faq">Antes de jogar</h2>
+    <div class="colunas revela">
+      <p><b>Funciona no celular?</b>Foi feito para o celular: a carta fica em cima, a conversa embaixo, e o teclado não esconde nada.</p>
+      <p><b>Quantas pessoas cabem?</b>Você escolhe 2, 4, 6 ou 8 lugares. Quem chega com a partida rolando ainda senta, se houver lugar.</p>
+      <p><b>O que muda na temperatura?</b>Morno fica no flerte, nos desejos e nos dilemas. Quente soma confissões e relação aberta. Pegando fogo tira o esquenta e entra direto nas perguntas sem filtro.</p>
+      <p><b>E as cartas para a mesa toda?</b>Nelas todo mundo responde no chat: votações, "Eu nunca", verdade ou mentira.</p>
+      <p><b>Dá para reagir sem escrever?</b>Sim. Coração, fogo, risada e cara de espanto aparecem para todos na hora.</p>
+      <p><b>Fica salvo em algum lugar?</b>Não há perfil nem senha. O chat guarda as últimas 80 mensagens da mesa, e o registro das mesas fica com quem administra o jogo.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="convite-final revela">
+    <p>Chame quem topa ir mais fundo.</p>
+    <a class="btn" href="#mesa">Abrir uma mesa</a>
+  </div>
+  <nav aria-label="Rodapé">
+    <a href="../">Versão clássica do Entre Nós</a>
+    <a href="#convite">Entrar com um código</a>
+    <a href="../admin.html">Área do organizador</a>
+  </nav>
+  <small>Entre Nós Sem Filtro · somente para maiores de 18 anos</small>
+</footer>
+
+<script src="../js/config.js"></script>
+<script src="../js/cartas.js"></script>
+<script src="../js/cartas18.js"></script>
+<script src="../js/logica.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/comum.js"></script>
+<script src="tema18.js"></script>
+<script src="../js/inicio.js"></script>
+</body>
+</html>

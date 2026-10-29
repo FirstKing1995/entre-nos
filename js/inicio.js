@@ -55,9 +55,11 @@
   /* ---------- baralho de amostra ---------- */
   var placa = document.getElementById('placa');
   var lista = document.getElementById('lista-macos');
-  var atual = 1, ultima = 0;
+  var baralho = document.body.dataset.baralho || 'classico';
+  var macos = CATEGORIAS.filter(function (c) { return (c.baralho || 'classico') === baralho; });
+  var atual = macos[0].id, ultima = 0;
 
-  CATEGORIAS.forEach(function (c) {
+  macos.forEach(function (c) {
     var n = CARTAS.filter(function (x) { return x.cat === c.id; }).length;
     var li = document.createElement('li');
     li.innerHTML = '<button type="button" data-cat="' + c.id + '" aria-pressed="false">' +
@@ -73,6 +75,8 @@
     placa.innerHTML = cartaHTML(c.id, { virada: true });
     var el = placa.firstChild;
     requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove('virada'); }); });
+    if (picante() && tirarAmostra.ja) setTimeout(function () { explodir(el, [categoria(cat).simbolo, 'coracao'], 10); }, 450);
+    tirarAmostra.ja = true;
     lista.querySelectorAll('button').forEach(function (b) {
       b.setAttribute('aria-pressed', String(Number(b.dataset.cat) === cat));
     });
@@ -97,6 +101,6 @@
     p.addEventListener('click', function () { tirarAmostra(Number(p.dataset.cat)); });
   });
 
-  tirarAmostra(1);
+  tirarAmostra(atual);
   animarEntradas();
 })();

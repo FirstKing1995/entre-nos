@@ -12,8 +12,51 @@ var ICONES = {
   jogar: '<polygon points="6 3 20 12 6 21 6 3"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   conversa: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
-  baralho: '<rect width="12" height="16" x="8" y="5" rx="1"/><path d="M4 17V4a1 1 0 0 1 1-1h10"/>'
+  baralho: '<rect width="12" height="16" x="8" y="5" rx="1"/><path d="M4 17V4a1 1 0 0 1 1-1h10"/>',
+  coracao: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  fogo: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  brilho: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
+  cereja: '<path d="M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"/><path d="M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"/><path d="M7 14c3.22-2.91 4.29-8.75 5-12 1.66 2.38 4.94 9 5 12"/><path d="M22 9c-4.29 0-7.14-2.33-10-7 5.71 0 10 4.67 10 7Z"/>',
+  infinito: '<path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 0 0 0-8c-2 0-4 1.33-6 4Z"/>',
+  cadeado: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  dado: '<rect width="18" height="18" x="3" y="3" rx="3" ry="3"/><path d="M16 8h.01"/><path d="M8 8h.01"/><path d="M8 16h.01"/><path d="M16 16h.01"/><path d="M12 12h.01"/>',
+  risada: '<circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
+  uau: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="15.5" r="2.2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
+  escudo: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  olhoFechado: '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>'
 };
+
+var REACAO_NOME = { coracao: 'mandou amor', fogo: 'achou quente', risada: 'riu', uau: 'ficou de boca aberta' };
+
+function picante() { return document.body && document.body.dataset.baralho === 'picante'; }
+
+/* Uma chuva de símbolos saindo do centro de um elemento (cartas viradas, reações) */
+function explodir(el, nomes, qtd) {
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var r = el.getBoundingClientRect();
+  var box = document.createElement('div');
+  box.className = 'estouro';
+  box.setAttribute('aria-hidden', 'true');
+  box.style.left = (r.left + r.width / 2) + 'px';
+  box.style.top = (r.top + r.height / 2) + 'px';
+  qtd = qtd || 14;
+  for (var i = 0; i < qtd; i++) {
+    var a = (Math.PI * 2 * i) / qtd + Math.random() * 0.5;
+    var d = 70 + Math.random() * 110;
+    var s = document.createElement('span');
+    s.style.setProperty('--dx', Math.round(Math.cos(a) * d) + 'px');
+    s.style.setProperty('--dy', Math.round(Math.sin(a) * d - 40) + 'px');
+    s.style.setProperty('--rot', Math.round(Math.random() * 120 - 60) + 'deg');
+    s.style.setProperty('--tam', (14 + Math.random() * 16) + 'px');
+    s.style.animationDelay = Math.round(Math.random() * 120) + 'ms';
+    var nome = nomes[i % nomes.length];
+    s.className = 'faisca f-' + nome;
+    s.innerHTML = '<svg viewBox="0 0 24 24">' + ICONES[nome] + '</svg>';
+    box.appendChild(s);
+  }
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 1600);
+}
 
 function icone(nome, rotulo) {
   return '<svg class="ico" viewBox="0 0 24 24" ' + (rotulo ? 'role="img" aria-label="' + rotulo + '"' : 'aria-hidden="true"') + '>' + ICONES[nome] + '</svg>';
@@ -39,6 +82,20 @@ function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
 /* O verso: campo oliva, moldura cheia e o monograma */
 function versoSVG() {
+  if (picante()) {
+    var cor = '';
+    for (var yy = 0; yy < 6; yy++) for (var xx = 0; xx < 4; xx++) {
+      if ((xx + yy) % 2) continue;
+      cor += '<path transform="translate(' + (22 + xx * 48) + ' ' + (22 + yy * 46) + ') scale(.55)" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>';
+    }
+    return '<svg class="verso-arte" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true">' +
+      '<rect width="200" height="280" fill="#ff5f8a"/>' +
+      '<rect x="10" y="10" width="180" height="260" rx="16" fill="#e2264d"/>' +
+      '<g fill="#ff8fb0" opacity=".55">' + cor + '</g>' +
+      '<circle cx="100" cy="140" r="46" fill="#fff1f4"/>' +
+      '<text x="100" y="156" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="600" font-size="40" fill="#e2264d">+18</text>' +
+      '</svg>';
+  }
   var pontos = '';
   for (var y = 0; y < 7; y++) for (var x = 0; x < 5; x++) {
     if ((x + y) % 2) continue;
@@ -67,6 +124,7 @@ function cartaHTML(id, op) {
     corpo = '<p class="perg' + (c.txt.length > 80 ? ' longa' : '') + '">' + esc(c.txt) + '</p>';
   }
   if (c.todos) corpo += '<span class="todos">Todos respondem</span>';
+  if (cat.simbolo) corpo += '<span class="simbolo" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICONES[cat.simbolo] + '</svg></span>';
   return '<div class="carta ' + (op.virada ? 'virada' : 'so-frente') + ' ' + (op.classe || '') + '" style="--cat:' + cat.cor + '" role="img" aria-label="Carta ' + c.id + ', ' + esc(cat.nome) + ': ' + esc((c.titulo ? c.titulo + '. ' : '') + c.txt) + '">' +
     '<div class="giro">' +
       '<div class="face"><div class="cab"><span>' + esc(cat.nome) + '</span><span>Nº ' + pad2(c.id) + '</span></div>' + corpo +

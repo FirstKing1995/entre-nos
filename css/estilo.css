@@ -314,6 +314,18 @@ button { cursor: pointer; }
 }
 .compor textarea::placeholder { color: #b39f84; }
 .compor .btn { min-height: 52px; padding: 0 18px; }
+.reacoes { display: flex; gap: 6px; padding: 8px 16px 0; background: var(--deep); }
+.reacoes button { width: 44px; height: 40px; display: grid; place-items: center; border: 0; background: var(--surface); color: var(--ochre); transition: transform .15s var(--ease), background .2s; }
+.reacoes button:hover { background: #64391d; }
+.reacoes button.pulou { animation: pulo .4s var(--ease); }
+@keyframes pulo { 40% { transform: scale(1.25) rotate(-8deg); } }
+.msg.rea { display: flex; align-items: center; gap: 6px; }
+.msg.rea .ico { color: var(--ochre); }
+.estouro { position: fixed; z-index: 60; pointer-events: none; width: 0; height: 0; }
+.faisca { position: absolute; left: 0; top: 0; width: var(--tam); height: var(--tam); margin: calc(var(--tam) / -2); color: var(--ochre); animation: faisca 1.1s cubic-bezier(.15, .7, .3, 1) both; }
+.faisca svg { width: 100%; height: 100%; fill: currentColor; stroke: none; }
+.f-risada svg, .f-uau svg, .f-cereja svg, .f-infinito svg { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes faisca { 0% { transform: translate(0, 0) scale(.2); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1); opacity: 0; } }
 .contador { padding: 0 20px 10px; font-size: var(--step-small); color: var(--muted); text-align: right; background: var(--deep); margin: -8px 0 0; }
 
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--paper); color: var(--paper-ink); padding: 12px 20px; font-weight: 500; z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,.35); transition: opacity .25s, transform .25s var(--ease); pointer-events: none; max-width: calc(100vw - 32px); }

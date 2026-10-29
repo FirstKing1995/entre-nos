@@ -10,6 +10,7 @@
   var form = document.getElementById('compor');
   var texto = document.getElementById('texto');
   var contador = document.getElementById('contador');
+  var reacoes = document.getElementById('reacoes');
 
   var cod = Api.normaliza(new URLSearchParams(location.search).get('sala'));
   var eu = cod ? Identidade.ler(cod) : null;
@@ -73,7 +74,14 @@
       .finally(function () { ocupado = false; });
   }
 
+  var meuBaralho = document.body.dataset.baralho || 'classico';
+
   function aplicar(v) {
+    if (v.baralho && v.baralho !== meuBaralho) {
+      clearTimeout(timer);
+      location.replace((v.baralho === 'picante' ? '18/' : '../') + 'jogo.html?sala=' + cod);
+      throw new Error('Mudando para a mesa certa...');
+    }
     if (vista && v.seq < seq) return;
     vista = v;
     v.msgs.forEach(function (m) { if (!vistas[m.n]) { vistas[m.n] = 1; desenharMsg(m); } });
@@ -92,6 +100,7 @@
     chat.hidden = !dentro && vista.status !== 'fim';
     form.hidden = !dentro || vista.status === 'fim';
     contador.hidden = form.hidden;
+    if (reacoes) reacoes.hidden = form.hidden;
     document.getElementById('chat-quem').textContent = ativos().length + (ativos().length === 1 ? ' pessoa' : ' pessoas');
     document.title = (dentro && vista.status === 'jogo' && minhaVez() ? 'Sua vez · ' : 'Mesa ' + vista.cod + ' · ') + 'Entre Nós';
     atualizarPlaceholder();
@@ -194,7 +203,7 @@
       area = '<div class="leque' + (minha ? ' ativo' : '') + '" role="group" aria-label="Cartas viradas para baixo">';
       for (var i = 0; i < qtd; i++) {
         var meio = (qtd - 1) / 2, a = (i - meio) * 7, dx = (i - meio) * 13;
-        area += '<button class="carta-monte" type="button" data-pos="' + i + '" style="transform:translateX(calc(-50% + ' + dx + '%)) rotate(' + a + 'deg)"' +
+        area += '<button class="carta-monte" type="button" data-pos="' + i + '" style="--i:' + i + ';transform:translateX(calc(-50% + ' + dx + '%)) rotate(' + a + 'deg)"' +
           (minha ? ' aria-label="Tirar a carta ' + (i + 1) + ' de ' + qtd + '"' : ' tabindex="-1" aria-hidden="true"') + '>' + versoSVG() + '</button>';
       }
       area += '</div>';
@@ -222,6 +231,7 @@
       cartaMostrada = c.id;
       var el = palco.querySelector('.carta');
       setTimeout(function () { el && el.classList.remove('virada'); }, 260);
+      if (picante()) setTimeout(function () { explodir(el, ['coracao', 'fogo', 'brilho', 'cereja'], 16); }, 700);
     } else if (!c) cartaMostrada = 0;
   }
 
@@ -285,6 +295,11 @@
     if (m.tipo === 'sis') {
       el.className = 'msg sis';
       el.textContent = m.txt;
+    } else if (m.tipo === 'rea') {
+      el.className = 'msg sis rea r-' + m.rea;
+      el.innerHTML = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (ICONES[m.rea] || '') + '</svg>' +
+        esc((minha ? 'Você' : p.nome) + ' ' + (REACAO_NOME[m.rea] || 'reagiu'));
+      if (Date.now() - m.t < 8000) explodir(reacoes && !reacoes.hidden ? reacoes : caixaMsgs, [m.rea], 9);
     } else if (m.tipo === 'carta') {
       var c = carta(m.carta) || { txt: '', cat: 1 };
       el.className = 'msg mini-carta';
@@ -334,6 +349,14 @@
       if (!texto.value) { texto.value = t; ajustarAltura(); }
     });
     texto.focus();
+  });
+
+  if (reacoes) reacoes.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-rea]');
+    if (!b || !sentado()) return;
+    b.classList.remove('pulou'); void b.offsetWidth; b.classList.add('pulou');
+    Api.chamar('msg', { cod: cod, pid: eu.pid, tok: eu.tok, desde: seq, rea: b.dataset.rea })
+      .then(aplicar).catch(function (err) { toast(err.message, true); });
   });
 
   document.addEventListener('visibilitychange', function () { if (!document.hidden) agendar(0); });

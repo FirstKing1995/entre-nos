@@ -9,11 +9,16 @@ var Logica = (function () {
   var ONLINE_MS = 20000;
   var CAPS = [2, 4, 6, 8];
   var MODOS = {
-    completo: { nome: 'Baralho completo', cats: [1, 2, 3, 4, 5, 6, 7] },
-    tranquilo: { nome: 'Tranquilo', cats: [1, 2, 3, 4, 6, 7] },
-    engracado: { nome: 'Engraçado', cats: [1, 3, 6, 7] },
-    profundo: { nome: 'Profundo', cats: [2, 4, 5, 6, 7] }
+    completo: { nome: 'Baralho completo', baralho: 'classico', cats: [1, 2, 3, 4, 5, 6, 7] },
+    tranquilo: { nome: 'Tranquilo', baralho: 'classico', cats: [1, 2, 3, 4, 6, 7] },
+    engracado: { nome: 'Engraçado', baralho: 'classico', cats: [1, 3, 6, 7] },
+    profundo: { nome: 'Profundo', baralho: 'classico', cats: [2, 4, 5, 6, 7] },
+    morno: { nome: 'Morno', baralho: 'picante', cats: [11, 12, 16, 17] },
+    quente: { nome: 'Quente', baralho: 'picante', cats: [11, 12, 13, 14, 16, 17] },
+    fogo: { nome: 'Pegando fogo', baralho: 'picante', cats: [12, 13, 14, 15, 16, 17] },
+    tudo18: { nome: 'Sem filtro total', baralho: 'picante', cats: [11, 12, 13, 14, 15, 16, 17] }
   };
+  var REACOES = ['coracao', 'fogo', 'risada', 'uau'];
   var CORES = ['#e0b154', '#a9bb63', '#e08a74', '#7fbcae', '#d99ab0', '#9db5dc', '#e6d197', '#c4a283'];
   var LETRAS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -263,9 +268,16 @@ var Logica = (function () {
   function falar(s, o) {
     var j = autentica(s, o);
     if (s.status === 'fim') throw erro('Esta mesa foi encerrada.');
+    var t = agora();
+    if (o.rea) {
+      if (REACOES.indexOf(o.rea) < 0) throw erro('Reação desconhecida.');
+      if (t - (j.ultMsg || 0) < 600) throw erro('Calma, uma reação de cada vez.');
+      j.ultMsg = t;
+      mensagem(s, { tipo: 'rea', de: j.id, rea: o.rea });
+      return;
+    }
     var txt = limpa(o.txt, MAX_TXT);
     if (!txt) throw erro('Escreva alguma coisa antes de enviar.');
-    var t = agora();
     if (t - (j.ultMsg || 0) < 600) throw erro('Uma mensagem de cada vez.');
     j.ultMsg = t;
     var m = { tipo: 'msg', de: j.id, txt: txt };
@@ -309,7 +321,7 @@ var Logica = (function () {
     var t = agora();
     desde = Number(desde) || 0;
     return {
-      cod: s.cod, cap: s.cap, modo: s.modo, modoNome: MODOS[s.modo].nome, status: s.status,
+      cod: s.cod, cap: s.cap, modo: s.modo, modoNome: MODOS[s.modo].nome, baralho: MODOS[s.modo].baralho, status: s.status,
       anfitriao: s.anfitriao, vezId: s.vezId, rodada: s.rodada,
       carta: s.carta ? { id: s.carta.id, por: s.carta.por, trocas: s.carta.trocas, todos: s.carta.todos } : null,
       monte: s.monte.length, descarte: s.descarte.length, sorteadas: s.sorteadas, seq: s.seq,
@@ -323,7 +335,7 @@ var Logica = (function () {
   }
 
   return {
-    CAPS: CAPS, MODOS: MODOS, MAX_TXT: MAX_TXT, MAX_NOME: MAX_NOME,
+    CAPS: CAPS, MODOS: MODOS, REACOES: REACOES, MAX_TXT: MAX_TXT, MAX_NOME: MAX_NOME,
     novoCodigo: novoCodigo, criarSala: criarSala, entrar: entrar, aplicar: aplicar,
     vista: vista, encerrarMesa: encerrarMesa, ativos: ativos, cartaPorId: cartaPorId, limpa: limpa
   };

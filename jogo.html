@@ -32,6 +32,12 @@
     <aside class="chat" id="chat" aria-labelledby="t-chat" hidden>
       <div class="cab-chat"><span id="t-chat">Conversa da mesa</span><small id="chat-quem"></small></div>
       <div class="mensagens" id="mensagens" role="log" aria-live="polite" aria-label="Mensagens da mesa"></div>
+      <div class="reacoes" id="reacoes" role="group" aria-label="Reações rápidas">
+        <button type="button" data-rea="coracao" aria-label="Mandar amor">%%coracao%%</button>
+        <button type="button" data-rea="fogo" aria-label="Achei quente">%%fogo%%</button>
+        <button type="button" data-rea="risada" aria-label="Rir">%%risada%%</button>
+        <button type="button" data-rea="uau" aria-label="Fiquei de boca aberta">%%uau%%</button>
+      </div>
       <form class="compor" id="compor">
         <label class="oculto" for="texto">Mensagem</label>
         <textarea id="texto" rows="1" maxlength="300" placeholder="Escreva para a mesa"></textarea>
