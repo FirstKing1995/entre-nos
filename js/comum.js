@@ -23,12 +23,45 @@ var ICONES = {
   risada: '<circle cx="12" cy="12" r="10"/><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
   uau: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="15.5" r="2.2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
   escudo: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  livro: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  envelope: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  olho: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+  estrela: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+  lua: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  sorriso: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/>',
+  chamar: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>',
+  mais: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  voltar: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  musica: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  semSom: '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
   olhoFechado: '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>'
 };
 
 var REACAO_NOME = { coracao: 'mandou amor', fogo: 'achou quente', risada: 'riu', uau: 'ficou de boca aberta' };
 
-function picante() { return document.body && document.body.dataset.baralho === 'picante'; }
+/* baralho da tela atual: classico, picante ou misto (fica no body para trocar o verso das cartas) */
+function baralhoAtual() { return (document.body && document.body.dataset.baralho) || 'classico'; }
+
+/* Os três baralhos como aparecem para quem joga */
+var BARALHO_INFO = {
+  classico: { nome: 'Normal', icone: 'sorriso', cor: '#8a6bff', desc: 'Perguntas para rir, lembrar e se conhecer de verdade.' },
+  picante: { nome: '+18', icone: 'fogo', cor: '#ff5f8a', desc: 'Desejo, sexo e relação aberta, sem rodeio.' },
+  misto: { nome: 'Misto', icone: 'cereja', cor: '#ff8a3d', desc: 'Começa leve e esquenta: os dois baralhos juntos.' }
+};
+
+function totalCartas(modo) {
+  var cats = Logica.MODOS[modo].cats;
+  return CARTAS.filter(function (c) { return cats.indexOf(c.cat) >= 0; }).length;
+}
+
+/* o maior tom do baralho diz quantas cartas ele tem */
+function cartasDoBaralho(b) {
+  return Math.max.apply(null, Logica.BARALHOS[b].modos.map(totalCartas));
+}
+
+function avatar(nome, cor) {
+  return '<span class="ini" style="--c:' + (cor || '#ff86a6') + '" aria-hidden="true">' + esc(String(nome || '?').charAt(0).toUpperCase()) + '</span>';
+}
 
 /* Uma chuva de símbolos saindo do centro de um elemento (cartas viradas, reações) */
 function explodir(el, nomes, qtd) {
@@ -80,34 +113,26 @@ function carta(id) {
 
 function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
-/* O verso: campo oliva, moldura cheia e o monograma */
-function versoSVG() {
-  if (picante()) {
-    var cor = '';
-    for (var yy = 0; yy < 6; yy++) for (var xx = 0; xx < 4; xx++) {
-      if ((xx + yy) % 2) continue;
-      cor += '<path transform="translate(' + (22 + xx * 48) + ' ' + (22 + yy * 46) + ') scale(.55)" d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>';
-    }
-    return '<svg class="verso-arte" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true">' +
-      '<rect width="200" height="280" fill="#ff5f8a"/>' +
-      '<rect x="10" y="10" width="180" height="260" rx="16" fill="#e2264d"/>' +
-      '<g fill="#ff8fb0" opacity=".55">' + cor + '</g>' +
-      '<circle cx="100" cy="140" r="46" fill="#fff1f4"/>' +
-      '<text x="100" y="156" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="600" font-size="40" fill="#e2264d">+18</text>' +
-      '</svg>';
-  }
-  var pontos = '';
-  for (var y = 0; y < 7; y++) for (var x = 0; x < 5; x++) {
+/* O verso: moldura arredondada, uma estampa de símbolos e o selo do baralho no meio */
+var VERSOS = {
+  classico: { fundo: '#8a6bff', miolo: '#6c4ee0', estampa: '#b9a4ff', selo: 'EN', simbolos: ['estrela'] },
+  picante: { fundo: '#ff5f8a', miolo: '#e2264d', estampa: '#ff8fb0', selo: '+18', simbolos: ['coracao'] },
+  misto: { fundo: '#ff8a3d', miolo: '#e2264d', estampa: '#ffb07a', selo: '+18', simbolos: ['estrela', 'coracao'] }
+};
+function versoSVG(baralho) {
+  var v = VERSOS[baralho || baralhoAtual()] || VERSOS.classico;
+  var estampa = '', n = 0;
+  for (var y = 0; y < 6; y++) for (var x = 0; x < 4; x++) {
     if ((x + y) % 2) continue;
-    pontos += '<circle cx="' + (34 + x * 33) + '" cy="' + (40 + y * 32) + '" r="2.4"/>';
+    var nome = v.simbolos[n++ % v.simbolos.length];
+    estampa += '<g transform="translate(' + (22 + x * 48) + ' ' + (22 + y * 46) + ') scale(.55)">' + ICONES[nome] + '</g>';
   }
   return '<svg class="verso-arte" viewBox="0 0 200 280" preserveAspectRatio="none" aria-hidden="true">' +
-    '<rect width="200" height="280" fill="#525e1b"/>' +
-    '<rect x="12" y="12" width="176" height="256" fill="#46511a"/>' +
-    '<g fill="#c79a3e" opacity=".55">' + pontos + '</g>' +
-    '<rect x="52" y="96" width="96" height="88" fill="#efe7d2"/>' +
-    '<text x="100" y="152" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="40" font-style="italic" fill="#525e1b">EN</text>' +
-    '<text x="100" y="250" text-anchor="middle" font-family="Jost, sans-serif" font-size="11" letter-spacing="1" fill="#efe7d2">ENTRE NÓS</text>' +
+    '<rect width="200" height="280" fill="' + v.fundo + '"/>' +
+    '<rect x="10" y="10" width="180" height="260" rx="16" fill="' + v.miolo + '"/>' +
+    '<g fill="' + v.estampa + '" stroke="none" opacity=".55">' + estampa + '</g>' +
+    '<circle cx="100" cy="140" r="46" fill="#fff1f4"/>' +
+    '<text x="100" y="155" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="600" font-size="' + (v.selo.length > 2 ? 40 : 44) + '" fill="' + v.miolo + '">' + v.selo + '</text>' +
     '</svg>';
 }
 
@@ -117,6 +142,9 @@ function cartaHTML(id, op) {
   var c = carta(id);
   if (!c) return '';
   var cat = categoria(c.cat);
+  /* no topo vai o nome mais curto do maço; no pé, o outro */
+  var curto = cat.nome.length <= cat.sub.length ? cat.nome : cat.sub;
+  var longo = curto === cat.nome ? cat.sub : cat.nome;
   var corpo = '';
   if (c.titulo) {
     corpo = '<p class="titulo">' + esc(c.titulo) + '</p><p class="perg instrucao">' + esc(c.txt) + '</p>';
@@ -127,8 +155,8 @@ function cartaHTML(id, op) {
   if (cat.simbolo) corpo += '<span class="simbolo" aria-hidden="true"><svg viewBox="0 0 24 24">' + ICONES[cat.simbolo] + '</svg></span>';
   return '<div class="carta ' + (op.virada ? 'virada' : 'so-frente') + ' ' + (op.classe || '') + '" style="--cat:' + cat.cor + '" role="img" aria-label="Carta ' + c.id + ', ' + esc(cat.nome) + ': ' + esc((c.titulo ? c.titulo + '. ' : '') + c.txt) + '">' +
     '<div class="giro">' +
-      '<div class="face"><div class="cab"><span>' + esc(cat.nome) + '</span><span>Nº ' + pad2(c.id) + '</span></div>' + corpo +
-        '<div class="pe"><span>Entre Nós</span><span>' + esc(cat.sub) + '</span></div></div>' +
+      '<div class="face"><div class="cab"><span>' + esc(curto) + '</span><span>Nº ' + pad2(c.id) + '</span></div>' + corpo +
+        '<div class="pe"><span>' + esc(longo) + '</span></div></div>' +
       '<div class="verso">' + versoSVG() + '</div>' +
     '</div></div>';
 }
@@ -150,34 +178,72 @@ function toast(msg, erro) {
   _toastT = setTimeout(function () { el.classList.remove('on'); }, erro ? 4200 : 2600);
 }
 
-/* Quem eu sou em cada mesa. No modo demonstração fica só nesta aba, para testar várias pessoas no mesmo navegador. */
-var Identidade = {
-  chave: function (cod) { return 'en_eu_' + cod; },
-  ler: function (cod) {
-    try {
-      var v = sessionStorage.getItem(this.chave(cod)) || (Api.remoto ? localStorage.getItem(this.chave(cod)) : null);
-      return v ? JSON.parse(v) : null;
-    } catch (e) { return null; }
-  },
-  gravar: function (cod, eu) {
-    var v = JSON.stringify(eu);
-    try { sessionStorage.setItem(this.chave(cod), v); if (Api.remoto) localStorage.setItem(this.chave(cod), v); } catch (e) {}
-    try { localStorage.setItem('en_nome', eu.nome || ''); } catch (e) {}
-  },
-  apagar: function (cod) {
-    try { sessionStorage.removeItem(this.chave(cod)); localStorage.removeItem(this.chave(cod)); } catch (e) {}
-  },
-  ultimoNome: function () { try { return localStorage.getItem('en_nome') || ''; } catch (e) { return ''; } }
-};
+/* Folha que sobe de baixo no celular (e vira janela no meio da tela no computador) */
+function abrirFolha(titulo, html, op) {
+  op = op || {};
+  fecharFolha();
+  var antes = document.activeElement;
+  var f = document.createElement('div');
+  f.className = 'folha-fundo';
+  f.innerHTML = '<div class="folha ' + (op.classe || '') + '" role="dialog" aria-modal="true" aria-labelledby="folha-t">' +
+    '<div class="folha-cab"><h2 id="folha-t">' + esc(titulo) + '</h2>' +
+    '<button class="fechar" type="button" aria-label="Fechar">' + icone('x') + '</button></div>' +
+    '<div class="folha-corpo">' + html + '</div></div>';
+  document.body.appendChild(f);
+  document.documentElement.classList.add('com-folha');
+  function fechar() { fecharFolha(); if (antes && antes.focus) antes.focus(); }
+  f.addEventListener('click', function (e) { if (e.target === f || e.target.closest('.fechar')) fechar(); });
+  f._tecla = function (e) { if (e.key === 'Escape') fechar(); };
+  document.addEventListener('keydown', f._tecla);
+  f.querySelector('.fechar').focus();
+  if (op.aoFechar) f._aoFechar = op.aoFechar;
+  return f.querySelector('.folha');
+}
+function fecharFolha() {
+  var f = document.querySelector('.folha-fundo');
+  if (!f) return;
+  document.removeEventListener('keydown', f._tecla);
+  if (f._aoFechar) f._aoFechar();
+  f.remove();
+  document.documentElement.classList.remove('com-folha');
+}
 
-/* Entradas das seções ao rolar */
-function animarEntradas() {
-  var els = document.querySelectorAll('.revela');
-  if (!('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('visto'); }); return; }
-  var io = new IntersectionObserver(function (ents) {
-    ents.forEach(function (en) {
-      if (en.isIntersecting) { en.target.classList.add('visto'); io.unobserve(en.target); }
-    });
-  }, { threshold: 0.12 });
-  els.forEach(function (e) { io.observe(e); });
+/* Regras e como se joga: ficam guardadas atrás de um botão */
+function abrirRegras() {
+  var passos = [
+    ['envelope', 'Abra uma mesa', 'Escolha Normal, +18 ou Misto, o tom e quantos lugares. Chame as pessoas pelo link ou direto pela lista de quem está online.'],
+    ['baralho', 'Tire uma carta', 'Na sua vez, escolha uma das cartas viradas e responda no chat. Todo mundo da mesa lê.'],
+    ['trocar', 'Troque ou passe', 'Não curtiu a pergunta? Troque até duas vezes ou passe a vez, sem precisar explicar.'],
+    ['pessoas', 'Cartas para todos', 'Algumas cartas chamam a mesa inteira: cada um responde e vocês comparam.']
+  ];
+  var casa = [
+    ['escudo', '#14a88e', 'Tudo é opcional', 'Passar a vez é sempre uma resposta válida. Ninguém cobra explicação.'],
+    ['olhoFechado', '#9b6bff', 'O que é dito aqui fica aqui', 'Nada de print ou de contar fora da mesa sem combinar com quem falou.'],
+    ['coracao', '#ff5f8a', 'Pergunta não é convite', 'Responder sobre um desejo não é topar nada. Cantada fora de hora estraga o jogo.'],
+    ['fogo', '#ff8a3d', '+18 só com quem topou', 'Mesa +18 ou Misto é só para adultos que sabem o que vão jogar.']
+  ];
+  abrirFolha('Como se joga',
+    '<ol class="passos">' + passos.map(function (p, i) {
+      return '<li style="--i:' + i + '"><span class="bola">' + icone(p[0]) + '</span><div><b>' + p[1] + '</b><p>' + p[2] + '</p></div></li>';
+    }).join('') + '</ol>' +
+    '<h3>Regras da casa</h3><ul class="casa">' + casa.map(function (r, i) {
+      return '<li style="--c:' + r[1] + ';--i:' + (i + 4) + '"><span class="bola">' + icone(r[0]) + '</span><div><b>' + r[2] + '</b><p>' + r[3] + '</p></div></li>';
+    }).join('') + '</ul>' +
+    '<h3>Os baralhos</h3><ul class="baralhos-info">' + Object.keys(Logica.BARALHOS).map(function (b) {
+      var info = BARALHO_INFO[b], B = Logica.BARALHOS[b];
+      return '<li style="--c:' + info.cor + '"><span class="bola">' + icone(info.icone) + '</span><div><b>' + info.nome + ' · ' + cartasDoBaralho(b) + ' cartas</b><p>' + info.desc +
+        ' Tons: ' + B.modos.map(function (m) { return Logica.MODOS[m].nome; }).join(', ') + '.</p></div></li>';
+    }).join('') + '</ul>',
+    { classe: 'regras' });
+}
+
+/* Copiar ou compartilhar um link (no celular abre o menu de compartilhar) */
+function compartilhar(link, texto) {
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    navigator.share({ title: 'Entre Nós', text: texto, url: link }).catch(function () {});
+    return;
+  }
+  (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
+    .then(function () { toast('Link copiado. Agora é só mandar.'); })
+    .catch(function () { prompt('Copie o link da mesa:', link); });
 }

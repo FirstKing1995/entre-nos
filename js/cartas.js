@@ -1,12 +1,12 @@
 /* Entre Nós — o baralho. Este arquivo roda no navegador e também no Apps Script (Cartas.gs). */
 var CATEGORIAS = [
-  { id: 1, nome: 'Quebra-gelo', sub: 'Vamos começar de leve', cor: '#b8862c' },
-  { id: 2, nome: 'Quem é você de verdade?', sub: 'Personalidade', cor: '#5f6e1f' },
-  { id: 3, nome: 'Histórias que merecem ser contadas', sub: 'Histórias', cor: '#8a3b2e' },
-  { id: 4, nome: 'Amizade sem filtro', sub: 'Amizade', cor: '#2f6158' },
-  { id: 5, nome: 'Debaixo da superfície', sub: 'Profundas', cor: '#283454' },
-  { id: 6, nome: 'Hipóteses, escolhas e dilemas', sub: 'Dilemas', cor: '#7a4e22' },
-  { id: 7, nome: 'Cartas especiais', sub: 'Para jogar em grupo', cor: '#1f140b' }
+  { id: 1, baralho: 'classico', nome: 'Quebra-gelo', sub: 'Vamos começar de leve', cor: '#3fb0e8', simbolo: 'sorriso' },
+  { id: 2, baralho: 'classico', nome: 'Quem é você de verdade?', sub: 'Personalidade', cor: '#6f7dff', simbolo: 'estrela' },
+  { id: 3, baralho: 'classico', nome: 'Histórias que merecem ser contadas', sub: 'Histórias', cor: '#ff7a59', simbolo: 'livro' },
+  { id: 4, baralho: 'classico', nome: 'Amizade sem filtro', sub: 'Amizade', cor: '#2bb673', simbolo: 'pessoas' },
+  { id: 5, baralho: 'classico', nome: 'Debaixo da superfície', sub: 'Profundas', cor: '#3c5fd6', simbolo: 'lua' },
+  { id: 6, baralho: 'classico', nome: 'Hipóteses, escolhas e dilemas', sub: 'Dilemas', cor: '#d4a017', simbolo: 'dado' },
+  { id: 7, baralho: 'classico', nome: 'Cartas especiais', sub: 'Para jogar em grupo', cor: '#d04fa0', simbolo: 'brilho' }
 ];
 
 var CARTAS = [

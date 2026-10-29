@@ -16,11 +16,19 @@ var Logica = (function () {
     morno: { nome: 'Morno', baralho: 'picante', cats: [11, 12, 16, 17] },
     quente: { nome: 'Quente', baralho: 'picante', cats: [11, 12, 13, 14, 16, 17] },
     fogo: { nome: 'Pegando fogo', baralho: 'picante', cats: [12, 13, 14, 15, 16, 17] },
-    tudo18: { nome: 'Sem filtro total', baralho: 'picante', cats: [11, 12, 13, 14, 15, 16, 17] }
+    tudo18: { nome: 'Sem filtro total', baralho: 'picante', cats: [11, 12, 13, 14, 15, 16, 17] },
+    mleve: { nome: 'Leve', baralho: 'misto', cats: [1, 3, 6, 7, 11, 12, 16, 17] },
+    mquente: { nome: 'Quente', baralho: 'misto', cats: [1, 2, 3, 6, 7, 11, 12, 13, 14, 16, 17] },
+    mtudo: { nome: 'Tudo junto', baralho: 'misto', cats: [1, 2, 3, 4, 5, 6, 7, 11, 12, 13, 14, 15, 16, 17] }
+  };
+  /* Os três baralhos que aparecem no começo, cada um com seus tons e o tom já marcado */
+  var BARALHOS = {
+    classico: { nome: 'Normal', modos: ['completo', 'tranquilo', 'engracado', 'profundo'], padrao: 'completo' },
+    picante: { nome: '+18', modos: ['morno', 'quente', 'fogo', 'tudo18'], padrao: 'tudo18' },
+    misto: { nome: 'Misto', modos: ['mleve', 'mquente', 'mtudo'], padrao: 'mquente' }
   };
   var REACOES = ['coracao', 'fogo', 'risada', 'uau'];
   var CORES = ['#e0b154', '#a9bb63', '#e08a74', '#7fbcae', '#d99ab0', '#9db5dc', '#e6d197', '#c4a283'];
-  var LETRAS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
   function erro(msg) { var e = new Error(msg); e.jogo = true; return e; }
   function agora() { return Date.now(); }
@@ -33,12 +41,6 @@ var Logica = (function () {
       .slice(0, max);
   }
 
-  function sorteio(rnd, tam, letras) {
-    var s = '';
-    for (var i = 0; i < tam; i++) s += letras.charAt(Math.floor(rnd() * letras.length));
-    return s;
-  }
-
   function embaralha(lista, rnd) {
     for (var i = lista.length - 1; i > 0; i--) {
       var j = Math.floor(rnd() * (i + 1));
@@ -46,8 +48,6 @@ var Logica = (function () {
     }
     return lista;
   }
-
-  function novoCodigo(rnd) { return sorteio(rnd, 5, LETRAS); }
 
   function cartaPorId(cartas, id) {
     for (var i = 0; i < cartas.length; i++) if (cartas[i].id === id) return cartas[i];
@@ -81,14 +81,16 @@ var Logica = (function () {
     return nome;
   }
 
-  function sentar(s, nomeBruto, rnd) {
+  /* id é a conta da pessoa; tok é uma chave dela que o servidor guarda e nunca mostra */
+  function sentar(s, nomeBruto, id, tok) {
     var nome = limpa(nomeBruto, MAX_NOME);
     if (nome.length < 2) throw erro('Escreva um nome com pelo menos 2 letras.');
+    if (!id || !tok) throw erro('Entre na sua conta para sentar à mesa.');
     var usadas = ativos(s).map(function (j) { return j.cor; });
     var cor = CORES.filter(function (c) { return usadas.indexOf(c) < 0; })[0] || CORES[s.jogadores.length % CORES.length];
     var j = {
-      id: 'j' + sorteio(rnd, 9, LETRAS.toLowerCase() + '0123456789'),
-      tok: sorteio(rnd, 28, LETRAS + 'abcdefghijkmnpqrstuvwxyz'),
+      id: id,
+      tok: tok,
       nome: nomeLivre(s, nome),
       cor: cor,
       entrou: agora(),
@@ -101,7 +103,7 @@ var Logica = (function () {
 
   function autentica(s, o) {
     var j = jogador(s, o.pid);
-    if (!j || j.tok !== o.tok || j.saiu) throw erro('Você não está nesta mesa. Entre de novo pelo convite.');
+    if (!j || j.tok !== o.tok || j.saiu) throw erro('Você não está nesta mesa. Entre de novo pelo link do convite.');
     return j;
   }
 
@@ -155,12 +157,12 @@ var Logica = (function () {
       .map(function (c) { return c.id; });
     var t = agora();
     var s = {
-      v: 1, cod: o.cod, criada: t, atualizada: t, cap: cap, modo: modo, status: 'espera',
+      v: 2, cod: o.cod, criada: t, atualizada: t, cap: cap, modo: modo, status: 'espera',
       anfitriao: null, jogadores: [], vezId: null, rodada: 1,
       monte: embaralha(ids, ctx.rnd), descarte: [], carta: null,
       msgs: [], seq: 0, sorteadas: 0
     };
-    var j = sentar(s, o.nome, ctx.rnd);
+    var j = sentar(s, o.nome, o.pid, o.tok);
     s.anfitriao = j.id;
     aviso(s, j.nome + ' abriu a mesa.');
     return { sala: s, jogador: j };
@@ -170,6 +172,8 @@ var Logica = (function () {
     var volta = o.pid ? jogador(s, o.pid) : null;
     if (volta && volta.tok === o.tok) {
       if (volta.saiu) {
+        if (volta.fora) throw erro('Quem organiza a mesa tirou você dela.');
+        if (s.status === 'fim') return volta;
         if (ativos(s).length >= s.cap) throw erro('A mesa está cheia.');
         volta.saiu = false;
         aviso(s, volta.nome + ' voltou para a mesa.');
@@ -178,7 +182,7 @@ var Logica = (function () {
     }
     if (s.status === 'fim') throw erro('Esta mesa foi encerrada.');
     if (ativos(s).length >= s.cap) throw erro('A mesa está cheia: todos os ' + s.cap + ' lugares estão ocupados.');
-    var j = sentar(s, o.nome, ctx.rnd);
+    var j = sentar(s, o.nome, o.pid, o.tok);
     aviso(s, j.nome + ' sentou à mesa.');
     if (!s.anfitriao || !jogador(s, s.anfitriao) || jogador(s, s.anfitriao).saiu) s.anfitriao = j.id;
     return j;
@@ -262,7 +266,8 @@ var Logica = (function () {
     if (s.anfitriao !== j.id) throw erro('Só quem organiza a mesa pode tirar alguém.');
     var alvo = jogador(s, o.alvo);
     if (!alvo || alvo.saiu || alvo.id === j.id) throw erro('Essa pessoa não está na mesa.');
-    retirar(s, alvo, alvo.nome + ' foi retirado da mesa.');
+    alvo.fora = true;
+    retirar(s, alvo, alvo.nome + ' saiu da mesa a pedido de quem organiza.');
   }
 
   function falar(s, o) {
@@ -335,8 +340,8 @@ var Logica = (function () {
   }
 
   return {
-    CAPS: CAPS, MODOS: MODOS, REACOES: REACOES, MAX_TXT: MAX_TXT, MAX_NOME: MAX_NOME,
-    novoCodigo: novoCodigo, criarSala: criarSala, entrar: entrar, aplicar: aplicar,
+    CAPS: CAPS, MODOS: MODOS, BARALHOS: BARALHOS, REACOES: REACOES, MAX_TXT: MAX_TXT, MAX_NOME: MAX_NOME,
+    criarSala: criarSala, jogador: jogador, entrar: entrar, aplicar: aplicar,
     vista: vista, encerrarMesa: encerrarMesa, ativos: ativos, cartaPorId: cartaPorId, limpa: limpa
   };
 })();

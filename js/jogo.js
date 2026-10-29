@@ -1,8 +1,7 @@
-/* Entre Nós — a mesa: saguão, leque de cartas, vez de cada um e a conversa */
+/* Entre Nós — a mesa: entrada pelo convite, saguão, leque de cartas, vez de cada um e a conversa */
 (function () {
-  document.querySelectorAll('button').forEach(function (b) {
-    b.innerHTML = b.innerHTML.replace(/%%(\w+)%%/g, function (m, n) { return icone(n); });
-  });
+  var sessao = Sessao.exigir();
+  if (!sessao) return;
 
   var palco = document.getElementById('palco');
   var chat = document.getElementById('chat');
@@ -12,9 +11,11 @@
   var contador = document.getElementById('contador');
   var reacoes = document.getElementById('reacoes');
 
-  var cod = Api.normaliza(new URLSearchParams(location.search).get('sala'));
-  var eu = cod ? Identidade.ler(cod) : null;
+  var mesa = String(new URLSearchParams(location.search).get('mesa') || '').toLowerCase();
+  var eu = sessao.eu.uid;
   var vista = null;
+  var online = [];
+  var chamados = {};
   var seq = 0;
   var vistas = {};
   var chavePalco = '';
@@ -22,15 +23,18 @@
   var ocupado = false;
   var timer = null;
   var falhas = 0;
+  var folhaConvite = null;
 
   if (!Api.remoto) document.getElementById('demo-aviso').hidden = false;
-  if (cod.length !== 5) { semMesa('Este link não traz o código de uma mesa.'); return; }
+  /* quem já foi chamado no salão, ao abrir a mesa */
+  try { (JSON.parse(sessionStorage.getItem('en_chamados_' + mesa)) || []).forEach(function (u) { chamados[u] = 1; }); } catch (e) {}
+  if (!/^[a-z0-9]{12}$/.test(mesa)) { semMesa('Este link de mesa está incompleto. Peça o convite de novo.'); return; }
 
-  function linkConvite() { return location.origin + location.pathname + '?sala=' + cod; }
+  function linkConvite() { return location.origin + location.pathname + '?mesa=' + mesa; }
 
   function semMesa(msg) {
     palco.innerHTML = '<div class="entrada"><h1>Mesa não encontrada</h1><p>' + esc(msg) + '</p>' +
-      '<div><a class="btn" href="./#mesa">Abrir uma mesa nova</a></div></div>';
+      '<div><a class="btn" href="salao.html">Ir para o salão</a></div></div>';
   }
 
   function nomeDe(pid) {
@@ -38,13 +42,14 @@
     return j || { nome: 'Alguém', cor: '#c9b597' };
   }
   function sentado() {
-    if (!eu || !vista) return false;
-    var j = vista.jogadores.filter(function (x) { return x.id === eu.pid; })[0];
+    if (!vista) return false;
+    var j = vista.jogadores.filter(function (x) { return x.id === eu; })[0];
     return !!(j && !j.saiu);
   }
   function ativos() { return vista.jogadores.filter(function (j) { return !j.saiu; }); }
-  function souAnfitriao() { return eu && vista.anfitriao === eu.pid; }
-  function minhaVez() { return eu && vista.vezId === eu.pid; }
+  function souAnfitriao() { return vista.anfitriao === eu; }
+  function minhaVez() { return vista.vezId === eu; }
+  function precisaOnline() { return !!folhaConvite || (vista && sentado() && vista.status === 'espera'); }
 
   /* ---------- conversa com o servidor ---------- */
   function agendar(ms) {
@@ -54,9 +59,10 @@
   }
 
   function puxar() {
-    Api.estado(cod, eu && eu.pid, seq)
+    Api.chamar('estado', { mesa: mesa, desde: seq, online: precisaOnline() ? 1 : 0 })
       .then(function (v) { falhas = 0; aplicar(v); agendar(); })
       .catch(function (err) {
+        if (err.sessao) return;
         if (!vista) { semMesa(err.message); return; }
         falhas++;
         if (falhas === 2) toast('Conexão instável. Tentando de novo...', true);
@@ -67,48 +73,48 @@
   function acao(nome, extra) {
     if (ocupado) return Promise.resolve();
     ocupado = true;
-    var dados = Object.assign({ cod: cod, pid: eu.pid, tok: eu.tok, desde: seq }, extra || {});
-    return Api.chamar(nome, dados)
+    return Api.chamar(nome, Object.assign({ mesa: mesa, desde: seq }, extra || {}))
       .then(function (v) { aplicar(v); })
       .catch(function (err) { toast(err.message, true); chavePalco = ''; render(); throw err; })
       .finally(function () { ocupado = false; });
   }
 
-  var meuBaralho = document.body.dataset.baralho || 'classico';
-
   function aplicar(v) {
-    if (v.baralho && v.baralho !== meuBaralho) {
-      clearTimeout(timer);
-      location.replace((v.baralho === 'picante' ? '18/' : '../') + 'jogo.html?sala=' + cod);
-      throw new Error('Mudando para a mesa certa...');
-    }
     if (vista && v.seq < seq) return;
+    if (v.online) { online = v.online; desenharOnline(); }
     vista = v;
+    document.body.dataset.baralho = v.baralho;
+    if (sentado()) Musica.baralho(v.baralho);
     v.msgs.forEach(function (m) { if (!vistas[m.n]) { vistas[m.n] = 1; desenharMsg(m); } });
     seq = Math.max(seq, v.seq);
     render();
   }
 
   /* ---------- telas ---------- */
+  function rotuloMesa() {
+    var info = BARALHO_INFO[vista.baralho] || BARALHO_INFO.classico;
+    return info.nome + ' · ' + vista.modoNome;
+  }
+
   function render() {
     if (!vista) return;
     var info = document.getElementById('info-sala');
     info.hidden = false;
-    info.textContent = 'Mesa ' + vista.cod;
+    info.textContent = rotuloMesa();
+    info.style.setProperty('--c', (BARALHO_INFO[vista.baralho] || BARALHO_INFO.classico).cor);
     var dentro = sentado();
     document.getElementById('acoes-barra').hidden = !dentro;
     chat.hidden = !dentro && vista.status !== 'fim';
     form.hidden = !dentro || vista.status === 'fim';
     contador.hidden = form.hidden;
-    if (reacoes) reacoes.hidden = form.hidden;
+    reacoes.hidden = form.hidden;
     document.getElementById('chat-quem').textContent = ativos().length + (ativos().length === 1 ? ' pessoa' : ' pessoas');
-    document.title = (dentro && vista.status === 'jogo' && minhaVez() ? 'Sua vez · ' : 'Mesa ' + vista.cod + ' · ') + 'Entre Nós';
+    document.title = (dentro && vista.status === 'jogo' && minhaVez() ? 'Sua vez · ' : rotuloMesa() + ' · ') + 'Entre Nós';
     atualizarPlaceholder();
 
-    var chave = JSON.stringify([dentro, vista.status, vista.vezId, vista.anfitriao, vista.carta, vista.monte,
+    var chave = JSON.stringify([dentro, vista.status, vista.vezId, vista.anfitriao, vista.carta, vista.monte, vista.fora,
       vista.jogadores.map(function (j) { return [j.id, j.saiu, j.online, j.ausente]; })]);
     if (chave === chavePalco) return;
-    if (!dentro && document.getElementById('f-entrar') && vista.status !== 'fim') return;
     chavePalco = chave;
 
     if (!dentro) return telaEntrada();
@@ -120,10 +126,10 @@
   function lugaresHTML(comVazios) {
     var h = ativos().map(function (j) {
       var cls = 'lugar' + (j.online ? ' on' : '') + (vista.status === 'jogo' && j.id === vista.vezId ? ' vez' : '');
-      var tirar = souAnfitriao() && j.id !== eu.pid
+      var tirar = sentado() && souAnfitriao() && j.id !== eu
         ? '<button class="tirar" type="button" data-tirar="' + j.id + '" aria-label="Tirar ' + esc(j.nome) + ' da mesa">' + icone('x') + '</button>' : '';
       return '<li class="' + cls + '" style="--c:' + j.cor + '"><span class="ini" aria-hidden="true">' + esc(j.nome.charAt(0).toUpperCase()) + '</span>' +
-        '<span>' + esc(j.nome) + (j.id === (eu && eu.pid) ? ' (você)' : '') + '</span>' +
+        '<span>' + esc(j.nome) + (j.id === eu ? ' (você)' : '') + '</span>' +
         (j.id === vista.anfitriao ? '<svg class="ico coroa" viewBox="0 0 24 24" role="img" aria-label="organiza a mesa">' + ICONES.coroa + '</svg>' : '') +
         (j.online ? '' : '<span class="oculto">fora do ar</span>') + tirar + '</li>';
     }).join('');
@@ -132,36 +138,61 @@
   }
 
   function telaEntrada() {
-    var cheia = ativos().length >= vista.cap;
-    var saiu = eu && vista.jogadores.some(function (j) { return j.id === eu.pid && j.saiu; });
     if (vista.status === 'fim') return telaFim();
+    var info = BARALHO_INFO[vista.baralho] || BARALHO_INFO.classico;
+    var cheia = ativos().length >= vista.cap;
+    var dono = nomeDe(vista.anfitriao).nome;
+    var corpo;
+    if (vista.fora) corpo = '<p><b>Quem organiza esta mesa tirou você dela.</b> Você pode abrir a sua no salão.</p><div><a class="btn" href="salao.html">Ir para o salão</a></div>';
+    else if (cheia) corpo = '<p><b>Todos os ' + vista.cap + ' lugares estão ocupados.</b> Peça para alguém sair ou abra uma mesa nova.</p><div><a class="btn" href="salao.html">Ir para o salão</a></div>';
+    else corpo = (vista.baralho !== 'classico' ? '<p class="aviso-18">' + icone('fogo') + 'Esta mesa usa cartas +18: perguntas diretas sobre desejo e sexo. Passar a vez é sempre permitido.</p>' : '') +
+      '<p class="aviso-erro" id="erro-entrar" role="alert"></p>' +
+      '<div><button class="btn btn-grande" type="button" id="b-sentar">' + icone('jogar') + 'Sentar à mesa como ' + esc(sessao.eu.apelido) + '</button></div>';
     palco.innerHTML =
-      '<form class="entrada" id="f-entrar" novalidate>' +
-        '<h1>' + (saiu ? 'Voltar para a mesa ' : 'Você foi chamado para a mesa ') + esc(vista.cod) + '</h1>' +
-        '<p>' + ativos().length + ' de ' + vista.cap + ' lugares ocupados · tom ' + esc(vista.modoNome.toLowerCase()) +
-        (vista.status === 'jogo' ? ' · a partida já começou' : '') + '</p>' +
-        lugaresHTML(false).replace('class="lugares"', 'class="lugares" style="--surface:#e3d8bd"') +
-        (cheia && !saiu ? '<p><b>Todos os lugares estão ocupados.</b> Peça para alguém sair ou abra uma mesa nova.</p><div><a class="btn" href="./#mesa">Abrir uma mesa nova</a></div>' :
-        '<label class="campo"><span>Seu nome na mesa</span><input name="nome" maxlength="20" autocomplete="nickname" required value="' + esc((eu && eu.nome) || Identidade.ultimoNome()) + '"></label>' +
-        '<p class="aviso-erro" id="erro-entrar" role="alert"></p>' +
-        '<div><button class="btn" type="submit">Sentar à mesa</button></div>') +
-      '</form>';
-    var f = document.getElementById('f-entrar');
-    f.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var nome = Logica.limpa(f.nome.value, 20);
-      if (nome.length < 2) { document.getElementById('erro-entrar').textContent = 'Escreva seu nome com pelo menos 2 letras.'; return; }
-      var b = f.querySelector('button'); b.disabled = true; b.textContent = 'Sentando...';
-      Api.chamar('entrar', { cod: cod, nome: nome, pid: eu && eu.pid, tok: eu && eu.tok })
-        .then(function (r) {
-          eu = { pid: r.pid, tok: r.tok, nome: nome };
-          Identidade.gravar(cod, eu);
+      '<div class="entrada" style="--c:' + info.cor + '">' +
+        '<div class="entrada-topo"><span class="cartinha">' + versoSVG(vista.baralho) + '</span>' +
+        '<div><p class="cab">Convite de ' + esc(dono) + '</p><h1>Mesa ' + esc(rotuloMesa()) + '</h1>' +
+        '<p>' + ativos().length + ' de ' + vista.cap + ' lugares ocupados' + (vista.status === 'jogo' ? ' · a partida já começou' : '') + '</p></div></div>' +
+        lugaresHTML(false) + corpo +
+      '</div>';
+    var b = document.getElementById('b-sentar');
+    if (b) b.addEventListener('click', function () {
+      b.disabled = true;
+      Api.chamar('entrar', { mesa: mesa })
+        .then(function (v) {
           seq = 0; vistas = {}; caixaMsgs.innerHTML = ''; chavePalco = '';
-          aplicar(r.vista);
+          aplicar(v);
+          explodir(palco.querySelector('.lugares') || palco, ['coracao', 'estrela', 'brilho'], 12);
           agendar(0);
         })
-        .catch(function (err) { document.getElementById('erro-entrar').textContent = err.message; b.disabled = false; b.textContent = 'Sentar à mesa'; });
+        .catch(function (err) { document.getElementById('erro-entrar').textContent = err.message; b.disabled = false; });
     });
+  }
+
+  function onlineHTML() {
+    var dentro = {};
+    ativos().forEach(function (j) { dentro[j.id] = 1; });
+    var lista = online.filter(function (p) { return !dentro[p.uid]; });
+    if (!lista.length) return '<li class="vazio">Ninguém mais online agora. Mande o link pelo WhatsApp ou onde o grupo conversa.</li>';
+    return lista.map(function (p) {
+      var foi = chamados[p.uid];
+      return '<li><div class="pessoa">' + avatar(p.apelido) + '<span class="nome">' + esc(p.apelido) + '<small>' + (p.jogando ? 'jogando agora' : 'no salão') + '</small></span>' +
+        '<button class="btn btn-peq' + (foi ? ' btn-fantasma' : '') + '" type="button" data-chamar="' + esc(p.uid) + '"' + (foi ? ' disabled' : '') + '>' +
+        icone(foi ? 'ok' : 'chamar') + (foi ? 'Chamado' : 'Chamar') + '</button></div></li>';
+    }).join('');
+  }
+
+  function conviteHTML() {
+    return '<div class="convite-cartao">' +
+      '<p class="cab">' + icone('link') + 'Link de convite</p>' +
+      '<p>Só entra quem receber este link. Quem abrir cria a conta, se ainda não tiver, e senta.</p>' +
+      '<div class="link"><label class="oculto" for="link-conv">Link de convite</label><input id="link-conv" readonly value="' + esc(linkConvite()) + '">' +
+      '<button class="btn btn-peq" type="button" data-copiar>' + icone('copiar') + 'Copiar</button></div></div>' +
+      '<div class="bloco-online"><h2>' + icone('chamar') + 'Chamar quem está online</h2><ul class="gente" data-lista-online>' + onlineHTML() + '</ul></div>';
+  }
+
+  function desenharOnline() {
+    document.querySelectorAll('[data-lista-online]').forEach(function (ul) { ul.innerHTML = onlineHTML(); });
   }
 
   function telaSaguao() {
@@ -169,17 +200,14 @@
     var dono = souAnfitriao();
     palco.innerHTML =
       '<h1 class="status">Esperando o grupo</h1>' +
-      '<p class="status-sub">' + n + ' de ' + vista.cap + ' lugares ocupados. Tom ' + esc(vista.modoNome.toLowerCase()) + ', ' + vista.monte + ' cartas no baralho.</p>' +
+      '<p class="status-sub">' + n + ' de ' + vista.cap + ' lugares ocupados · ' + vista.monte + ' cartas no baralho.</p>' +
       '<div class="saguao">' +
-        '<div class="convite-cartao"><p class="cab">Código da mesa</p><p class="codigo-grande">' + esc(vista.cod) + '</p>' +
-          '<div class="link"><label class="oculto" for="link-conv">Link de convite</label><input id="link-conv" readonly value="' + esc(linkConvite()) + '">' +
-          '<button class="btn btn-peq" type="button" data-copiar>' + icone('copiar') + 'Copiar</button></div>' +
-          '<p>Mande o link no grupo. Quem abrir digita um nome e senta.</p></div>' +
-        '<div style="display:grid;gap:22px">' + lugaresHTML(true) +
+        '<div class="saguao-convite">' + conviteHTML() + '</div>' +
+        '<div class="saguao-lugares">' + lugaresHTML(true) +
           (dono
-            ? '<div><button class="btn btn-ocre" type="button" data-acao="iniciar"' + (n < 2 ? ' disabled' : '') + '>' + icone('jogar') + 'Começar a partida</button></div>' +
-              '<p class="status-sub" style="margin:0">' + (n < 2 ? 'Precisa de pelo menos mais uma pessoa.' : 'Pode começar agora ou esperar os lugares encherem. Quem chegar depois ainda senta.') + '</p>'
-            : '<p class="status-sub" style="margin:0">' + esc(nomeDe(vista.anfitriao).nome) + ' começa a partida quando todos chegarem.</p>') +
+            ? '<div><button class="btn btn-ocre btn-grande" type="button" data-acao="iniciar"' + (n < 2 ? ' disabled' : '') + '>' + icone('jogar') + 'Começar a partida</button></div>' +
+              '<p class="status-sub">' + (n < 2 ? 'Precisa de pelo menos mais uma pessoa.' : 'Pode começar agora ou esperar os lugares encherem. Quem chegar depois ainda senta.') + '</p>'
+            : '<p class="status-sub">' + esc(nomeDe(vista.anfitriao).nome) + ' começa a partida quando todos chegarem.</p>') +
         '</div>' +
       '</div>';
   }
@@ -204,7 +232,7 @@
       for (var i = 0; i < qtd; i++) {
         var meio = (qtd - 1) / 2, a = (i - meio) * 7, dx = (i - meio) * 13;
         area += '<button class="carta-monte" type="button" data-pos="' + i + '" style="--i:' + i + ';transform:translateX(calc(-50% + ' + dx + '%)) rotate(' + a + 'deg)"' +
-          (minha ? ' aria-label="Tirar a carta ' + (i + 1) + ' de ' + qtd + '"' : ' tabindex="-1" aria-hidden="true"') + '>' + versoSVG() + '</button>';
+          (minha ? ' aria-label="Tirar a carta ' + (i + 1) + ' de ' + qtd + '"' : ' tabindex="-1" aria-hidden="true"') + '>' + versoSVG(vista.baralho) + '</button>';
       }
       area += '</div>';
     }
@@ -224,32 +252,58 @@
       '<h1 class="status">' + esc(titulo) + '</h1><p class="status-sub">' + esc(sub) + '</p>' +
       '<div class="area-carta">' + area + '</div>' +
       '<div class="botoes-vez">' + bt + '</div>' +
-      '<p class="status-sub" style="text-align:center;margin:0">Rodada ' + vista.rodada + ' · ' + vista.monte + ' cartas no monte' +
-      (souAnfitriao() ? ' · <button type="button" data-acao="fechar" style="background:none;border:0;padding:0;color:inherit;text-decoration:underline">encerrar a mesa</button>' : '') + '</p>';
+      '<p class="status-sub">Rodada ' + vista.rodada + ' · ' + vista.monte + ' cartas no monte' +
+      (souAnfitriao() ? ' · <button type="button" data-acao="fechar" class="link-fino">encerrar a mesa</button>' : '') + '</p>';
 
     if (c && c.id !== cartaMostrada) {
       cartaMostrada = c.id;
       var el = palco.querySelector('.carta');
+      var simb = categoria((carta(c.id) || { cat: 1 }).cat).simbolo || 'coracao';
       setTimeout(function () { el && el.classList.remove('virada'); }, 260);
-      if (picante()) setTimeout(function () { explodir(el, ['coracao', 'fogo', 'brilho', 'cereja'], 16); }, 700);
+      setTimeout(function () { explodir(el, [simb, 'coracao', 'brilho', 'estrela'], 16); }, 700);
     } else if (!c) cartaMostrada = 0;
   }
 
   function telaFim() {
     palco.innerHTML = '<div class="fim-mesa"><h1 class="status">Esta mesa terminou</h1>' +
-      '<p class="status-sub" style="margin:0">' + vista.sorteadas + ' cartas foram tiradas. A conversa continua aí ao lado para quem quiser reler.</p>' +
-      '<a class="btn btn-ocre" href="./#mesa">Abrir uma mesa nova</a></div>';
+      '<p class="status-sub">' + vista.sorteadas + ' cartas foram tiradas. A conversa continua aqui para quem quiser reler.</p>' +
+      '<a class="btn btn-ocre" href="salao.html">Abrir uma mesa nova</a></div>';
     chat.hidden = false;
+  }
+
+  /* ---------- convidar ---------- */
+  function chamar(b) {
+    var uid = b.dataset.chamar;
+    b.disabled = true;
+    Api.chamar('convidar', { mesa: mesa, para: uid })
+      .then(function (r) {
+        chamados[uid] = 1;
+        desenharOnline();
+        toast('Convite enviado para ' + r.para + '.');
+      })
+      .catch(function (err) { b.disabled = false; toast(err.message, true); });
+  }
+
+  function abrirConvite() {
+    folhaConvite = abrirFolha('Chamar para a mesa', conviteHTML(), { classe: 'folha-convite', aoFechar: function () { folhaConvite = null; } });
+    folhaConvite.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      if (b.hasAttribute('data-copiar')) compartilhar(linkConvite(), 'Bora jogar Entre Nós? Entra na minha mesa: ' + linkConvite());
+      if (b.dataset.chamar) chamar(b);
+    });
+    agendar(0);
   }
 
   /* ---------- cliques no palco ---------- */
   palco.addEventListener('click', function (e) {
     var b = e.target.closest('button');
     if (!b || b.disabled) return;
-    if (b.hasAttribute('data-copiar')) return copiarConvite();
+    if (b.hasAttribute('data-copiar')) return compartilhar(linkConvite(), 'Bora jogar Entre Nós? Entra na minha mesa: ' + linkConvite());
+    if (b.dataset.chamar) return chamar(b);
     if (b.dataset.tirar) {
       var alvo = nomeDe(b.dataset.tirar);
-      if (confirm('Tirar ' + alvo.nome + ' da mesa?')) acao('remover', { alvo: b.dataset.tirar }).catch(function () {});
+      if (confirm('Tirar ' + alvo.nome + ' da mesa? Essa pessoa não volta pelo link.')) acao('remover', { alvo: b.dataset.tirar }).catch(function () {});
       return;
     }
     if (b.dataset.pos != null) {
@@ -267,21 +321,11 @@
     acao(nome).catch(function () {});
   });
 
-  function copiarConvite() {
-    var link = linkConvite();
-    var texto = 'Bora jogar Entre Nós? Entra na minha mesa: ' + link;
-    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-      navigator.share({ title: 'Entre Nós', text: texto, url: link }).catch(function () {});
-      return;
-    }
-    (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
-      .then(function () { toast('Link copiado. Agora é só mandar no grupo.'); })
-      .catch(function () { prompt('Copie o link da mesa:', link); });
-  }
-  document.getElementById('b-convidar').addEventListener('click', copiarConvite);
+  Musica.botao(document.getElementById('b-musica'));
+  document.getElementById('b-convidar').addEventListener('click', abrirConvite);
   document.getElementById('b-sair').addEventListener('click', function () {
     if (!confirm('Sair desta mesa? Você pode voltar pelo mesmo link enquanto houver lugar.')) return;
-    acao('sair').then(function () { location.href = './'; }).catch(function () {});
+    acao('sair').then(function () { location.href = 'salao.html'; }).catch(function () {});
   });
 
   /* ---------- chat ---------- */
@@ -291,7 +335,7 @@
     var perto = caixaMsgs.scrollHeight - caixaMsgs.scrollTop - caixaMsgs.clientHeight < 120;
     var el = document.createElement('div');
     var p = m.de ? nomeDe(m.de) : null;
-    var minha = eu && m.de === eu.pid;
+    var minha = m.de === eu;
     if (m.tipo === 'sis') {
       el.className = 'msg sis';
       el.textContent = m.txt;
@@ -299,7 +343,7 @@
       el.className = 'msg sis rea r-' + m.rea;
       el.innerHTML = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + (ICONES[m.rea] || '') + '</svg>' +
         esc((minha ? 'Você' : p.nome) + ' ' + (REACAO_NOME[m.rea] || 'reagiu'));
-      if (Date.now() - m.t < 8000) explodir(reacoes && !reacoes.hidden ? reacoes : caixaMsgs, [m.rea], 9);
+      if (Date.now() - m.t < 8000) explodir(!reacoes.hidden ? reacoes : caixaMsgs, [m.rea], 9);
     } else if (m.tipo === 'carta') {
       var c = carta(m.carta) || { txt: '', cat: 1 };
       el.className = 'msg mini-carta';
@@ -321,7 +365,7 @@
     var c = vista && vista.carta;
     var ph = 'Escreva para a mesa';
     if (vista && vista.status === 'jogo' && c) {
-      if (c.por === (eu && eu.pid)) ph = 'Escreva sua resposta';
+      if (c.por === eu) ph = 'Escreva sua resposta';
       else if (c.todos) ph = 'Esta carta é para todos: escreva sua resposta';
       else ph = 'Comente ou pergunte mais a ' + nomeDe(c.por).nome;
     }
@@ -343,19 +387,18 @@
     var t = texto.value.trim();
     if (!t || !sentado()) return;
     texto.value = ''; ajustarAltura();
-    var dados = { cod: cod, pid: eu.pid, tok: eu.tok, desde: seq, txt: t };
-    Api.chamar('msg', dados).then(aplicar).catch(function (err) {
+    Api.chamar('msg', { mesa: mesa, desde: seq, txt: t }).then(aplicar).catch(function (err) {
       toast(err.message, true);
       if (!texto.value) { texto.value = t; ajustarAltura(); }
     });
     texto.focus();
   });
 
-  if (reacoes) reacoes.addEventListener('click', function (e) {
+  reacoes.addEventListener('click', function (e) {
     var b = e.target.closest('[data-rea]');
     if (!b || !sentado()) return;
     b.classList.remove('pulou'); void b.offsetWidth; b.classList.add('pulou');
-    Api.chamar('msg', { cod: cod, pid: eu.pid, tok: eu.tok, desde: seq, rea: b.dataset.rea })
+    Api.chamar('msg', { mesa: mesa, desde: seq, rea: b.dataset.rea })
       .then(aplicar).catch(function (err) { toast(err.message, true); });
   });
 
